@@ -1,0 +1,4 @@
+# Editable Git install with no remote (biased-alpha-beta==0.1.0)
+-e /Users/phonghoang/Documents/vs-code/2026/biased-alpha-beta
+chess==1.11.2
+python-chess==1.999

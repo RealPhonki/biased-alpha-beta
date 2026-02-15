@@ -1,0 +1,13 @@
+# pyproject.toml
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "biased-alpha-beta"
+version = "0.1.0"
+description = "A chess engine with biased evaluation"
+dependencies = []
+
+[tool.setuptools]
+packages = ["src"]
