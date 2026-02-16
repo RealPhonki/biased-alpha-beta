@@ -11,3 +11,12 @@ dependencies = []
 
 [tool.setuptools]
 packages = ["src"]
+
+[tool.pylint.messages_control]
+disable = [
+    "trailing-whitespace",
+    "missing-module-docstring",
+    "missing-final-newline",
+    "wildcard-import",
+    "import-error",
+]
