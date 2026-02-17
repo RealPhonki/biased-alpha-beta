@@ -11,17 +11,15 @@ import chess
 from src.evaluation.pipeline import EvaluationPipeline
 from src.evaluation.base import Eval
 
-from src.debug.profiler import profile
-
 class AlphaBeta:
-    """ Evaluates a given board position with minimax search """
+    """ Evaluates a given board position with alphabeta search """
     def __init__(self, evaluation_pipeline: EvaluationPipeline) -> None:
         self.leaves_searched = 0
         self.nodes_searched = 0
         self.evaluator = evaluation_pipeline
 
-    def search(self, board: chess.Board, depth: int) -> Eval:
-        """ Performs a minimax search recursively.
+    def search(self, board: chess.Board, alpha: int, beta: int, depth: int) -> Eval:
+        """ Performs an alphabeta search recursively.
 
         Args:
             board (chess.Board): The current board state.
@@ -41,31 +39,50 @@ class AlphaBeta:
         best_score = -100_000
         for move in board.legal_moves:
             board.push(move)
-            score = -self.search(board, depth - 1)
+            score = -self.search(board, -beta, -alpha, depth - 1)
             board.pop()
 
             # store the best score
             best_score = max(best_score, score)
+            alpha = max(alpha, score)
+
+            if score >= beta:
+                return best_score
         
         return best_score
 
 if __name__ == "__main__":
     from src.evaluation.material import MaterialEvaluator
+    from src.debug.profiler import profile
+
+    from src.search.min_max import MinMax
 
     # create instances
-    test_board = chess.Board("r3r1k1/ppp2ppp/3p4/3P4/1PP3n1/2N5/1P1BNPPq/R2QRK2 b - - 1 2")
+    test_board = chess.Board("r1bqk2r/pppp1Npp/2n2n2/2b1p3/2B1P3/8/PPPP1PPP/RNBQK2R b KQkq - 0 5")
     pipeline = EvaluationPipeline(
         MaterialEvaluator()
     )
-    search = AlphaBeta(pipeline)
+    alphabeta = AlphaBeta(pipeline)
+    minmax = MinMax(pipeline)
 
-    # execute method
-    time, test_score = profile(search.search, [test_board, 3])
+    # profile alphabeta
+    ab_time, ab_test_score = profile(alphabeta.search, [test_board, -100_000, 100_000, 3])
 
-    # debug
-    print("-"*32)
-    print(f"Score: {test_score:,}")
-    print(f"Nodes: {search.nodes_searched:,}")
-    print(f"Leaves: {search.leaves_searched:,}")
-    print(f"Time Elapsed: {time:.3f}s")
-    print(f"NPS: {(search.nodes_searched / time):,.3f}")
+    print("-"*16 + " ALPHABETA" + "-"*16)
+    print(f"Score: {ab_test_score:,}")
+    print(f"Nodes: {alphabeta.nodes_searched:,}")
+    print(f"Leaves: {alphabeta.leaves_searched:,}")
+    print(f"Time Elapsed: {ab_time:.3f}s")
+    print(f"NPS: {(alphabeta.nodes_searched / ab_time):,.3f}")
+
+    print()
+
+    # profile minmax
+    mm_time, mm_test_score = profile(minmax.search, [test_board, 3])
+
+    print("-"*16 + " MINMAX" + "-"*16)
+    print(f"Score: {mm_test_score:,}")
+    print(f"Nodes: {minmax.nodes_searched:,}")
+    print(f"Leaves: {minmax.leaves_searched:,}")
+    print(f"Time Elapsed: {mm_time:.3f}s")
+    print(f"NPS: {(minmax.nodes_searched / mm_time):,.3f}")
