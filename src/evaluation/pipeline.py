@@ -1,9 +1,3 @@
-# pylint: disable=trailing-whitespace
-# pylint: disable=missing-module-docstring
-# pylint: disable=missing-final-newline
-# pylint: disable=wildcard-import
-# pylint: disable=import-error
-
 # third party
 import chess
 

@@ -1,9 +1,3 @@
-# pylint: disable=trailing-whitespace
-# pylint: disable=missing-module-docstring
-# pylint: disable=missing-final-newline
-# pylint: disable=wildcard-import
-# pylint: disable=import-error
-
 # third party
 import chess
 
@@ -14,9 +8,46 @@ from src.evaluation.base import Eval
 class AlphaBeta:
     """ Evaluates a given board position with alphabeta search """
     def __init__(self, evaluation_pipeline: EvaluationPipeline) -> None:
-        self.leaves_searched = 0
         self.nodes_searched = 0
         self.evaluator = evaluation_pipeline
+
+    def get_best_move(self, board: chess.Board, depth: int) -> chess.Move:
+        """ Searches all legal moves for a given position, scores them, and
+        returns the move with the highest score.
+
+        Args:
+            board (chess.Board): The current position
+            depth (int): The depth of the search
+
+        Returns:
+            chess.Move: The best move determined by the algorithm
+        """
+
+        self.nodes_searched = 0
+
+        best_score = -100_000
+        alpha = -100_000
+        beta = 100_000
+
+        legal_moves = list(board.legal_moves) # TODO: apply move ordering later
+
+        best_move = legal_moves[0]
+
+        for move in legal_moves:
+            board.push(move)
+            score = -self.search(board, -beta, -alpha, depth - 1)
+            board.pop()
+
+            if score > best_score:
+                best_score = score
+                best_move = move
+            
+            alpha = max(alpha, score)
+
+            # required by uci
+            print(f"info depth {depth} score cp {int(best_score)} pv {best_move.uci()}")
+
+        return best_move
 
     def search(self, board: chess.Board, alpha: int, beta: int, depth: int) -> Eval:
         """ Performs an alphabeta search recursively.
@@ -32,12 +63,14 @@ class AlphaBeta:
 
         # maximum depth reached or game is over, return evaluation
         if depth == 0 or board.is_game_over():
-            self.leaves_searched += 1 # debug
             return self.evaluator.evaluate(board)
 
         # play each legal move and score them
         best_score = -100_000
-        for move in board.legal_moves:
+
+        legal_moves = list(board.legal_moves) # TODO: apply move ordering later
+
+        for move in legal_moves:
             board.push(move)
             score = -self.search(board, -beta, -alpha, depth - 1)
             board.pop()
@@ -55,34 +88,15 @@ if __name__ == "__main__":
     from src.evaluation.material import MaterialEvaluator
     from src.debug.profiler import profile
 
-    from src.search.min_max import MinMax
-
     # create instances
-    test_board = chess.Board("r1bqk2r/pppp1Npp/2n2n2/2b1p3/2B1P3/8/PPPP1PPP/RNBQK2R b KQkq - 0 5")
+    test_board = chess.Board("r1b1k2r/ppp2ppp/2p5/8/4n2q/3PP1P1/PPP4P/RN1QKB1R b KQkq - 0 9")
     pipeline = EvaluationPipeline(
         MaterialEvaluator()
     )
     alphabeta = AlphaBeta(pipeline)
-    minmax = MinMax(pipeline)
 
     # profile alphabeta
-    ab_time, ab_test_score = profile(alphabeta.search, [test_board, -100_000, 100_000, 3])
+    time, _ = profile(alphabeta.get_best_move, [test_board, 4])
 
-    print("-"*16 + " ALPHABETA" + "-"*16)
-    print(f"Score: {ab_test_score:,}")
-    print(f"Nodes: {alphabeta.nodes_searched:,}")
-    print(f"Leaves: {alphabeta.leaves_searched:,}")
-    print(f"Time Elapsed: {ab_time:.3f}s")
-    print(f"NPS: {(alphabeta.nodes_searched / ab_time):,.3f}")
-
-    print()
-
-    # profile minmax
-    mm_time, mm_test_score = profile(minmax.search, [test_board, 3])
-
-    print("-"*16 + " MINMAX" + "-"*16)
-    print(f"Score: {mm_test_score:,}")
-    print(f"Nodes: {minmax.nodes_searched:,}")
-    print(f"Leaves: {minmax.leaves_searched:,}")
-    print(f"Time Elapsed: {mm_time:.3f}s")
-    print(f"NPS: {(minmax.nodes_searched / mm_time):,.3f}")
+    print(f"Time Elapsed: {time:.3f}s")
+    print(f"NPS: {(alphabeta.nodes_searched / time):,.3f}")
