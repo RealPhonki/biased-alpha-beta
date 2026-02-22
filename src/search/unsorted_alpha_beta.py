@@ -1,8 +1,3 @@
-# pylint: disable=line-too-long
-
-# standard
-from typing import Tuple
-
 # third party
 import chess
 
@@ -16,32 +11,7 @@ class AlphaBeta:
         self.nodes_searched = 0
         self.evaluator = evaluation_pipeline
 
-    def get_best_move(self, board: chess.Board, max_depth: int) -> chess.Move:
-        """ Finds the best move by applying iterative deepening.
-
-        Args:
-            board (chess.Board): The current board state
-            max_depth (int): The maximum depth to search
-
-        Returns:
-            chess.Move: The current best move
-        """
-        self.nodes_searched = 0
-
-        legal_moves = list(board.legal_moves)
-        if not legal_moves:
-            return None
-        
-        curr_best_move = legal_moves[0]
-
-        for curr_depth in range(1, max_depth + 1):
-            curr_best_move, score = self.search_root(board, curr_depth, curr_best_move)
-
-            print(f"info depth {curr_depth} score cp {score} pv {curr_best_move.uci()} nodes {self.nodes_searched}")
-
-        return curr_best_move
-
-    def search_root(self, board: chess.Board, depth: int, pv_move: chess.Move) -> Tuple[chess.Move, Eval]:
+    def get_best_move(self, board: chess.Board, depth: int) -> chess.Move:
         """ Searches all legal moves for a given position, scores them, and
         returns the move with the highest score.
 
@@ -52,13 +22,14 @@ class AlphaBeta:
         Returns:
             chess.Move: The best move determined by the algorithm
         """
-        best_score = -1_000_000
-        alpha = -1_000_000
-        beta = 1_000_000
+
+        self.nodes_searched = 0
+
+        best_score = -100_000
+        alpha = -100_000
+        beta = 100_000
 
         legal_moves = list(board.legal_moves)
-        if pv_move in legal_moves:
-            legal_moves.insert(0, legal_moves.pop(legal_moves.index(pv_move)))
 
         best_move = legal_moves[0]
 
@@ -73,7 +44,10 @@ class AlphaBeta:
             
             alpha = max(alpha, score)
 
-        return best_move, best_score
+            # required by uci
+            print(f"info depth {depth} score cp {int(best_score)} pv {best_move.uci()}")
+
+        return best_move
 
     def search(self, board: chess.Board, alpha: int, beta: int, depth: int) -> Eval:
         """ Performs an alphabeta search recursively.
@@ -92,9 +66,9 @@ class AlphaBeta:
             return self.evaluator.evaluate(board)
 
         # play each legal move and score them
-        best_score = -1_000_000
+        best_score = -100_000
 
-        legal_moves = list(board.legal_moves) # TODO: apply move ordering later
+        legal_moves = list(board.legal_moves)
 
         for move in legal_moves:
             board.push(move)
@@ -122,7 +96,7 @@ if __name__ == "__main__":
     alphabeta = AlphaBeta(pipeline)
 
     # profile alphabeta
-    time, _ = profile(alphabeta.get_best_move, [test_board, 5])
+    time, _ = profile(alphabeta.get_best_move, [test_board, 4])
 
     print(f"Time Elapsed: {time:.3f}s")
     print(f"NPS: {(alphabeta.nodes_searched / time):,.3f}")

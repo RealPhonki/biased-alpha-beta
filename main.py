@@ -25,6 +25,8 @@ def log(message, direction="INFO"):
 try:
     from src.evaluation.pipeline import EvaluationPipeline
     from src.evaluation.material import MaterialEvaluator
+    from src.move_ordering.pipeline import MoveSortingPipeline
+    from src.move_ordering.mvv_lva import MvvLva
     from src.search.alpha_beta import AlphaBeta
     log("Imports successful", "INFO")
 except Exception as e:
@@ -36,8 +38,9 @@ def main():
 
     # Initialize Engine
     try:
-        pipeline = EvaluationPipeline(MaterialEvaluator())
-        search_engine = AlphaBeta(pipeline)
+        eval_pipeline = EvaluationPipeline(MaterialEvaluator())
+        move_sorting_pipeline = MoveSortingPipeline(MvvLva())
+        search_engine = AlphaBeta(eval_pipeline, move_sorting_pipeline)
         board = chess.Board()
         log("Engine initialized successfully", "INFO")
     except Exception as e:
@@ -115,7 +118,7 @@ def main():
         elif command.startswith("go"):
             try:
                 # Run search
-                best_move = search_engine.get_best_move(board, depth=3)
+                best_move = search_engine.get_best_move(board, depth=5)
                 
                 # Send result
                 res = f"bestmove {best_move.uci() if best_move else '0000'}"

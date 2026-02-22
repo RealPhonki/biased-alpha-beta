@@ -9,7 +9,7 @@ class EvaluationPipeline(Evaluator):
     Returns the sum of the evaluations made by all evaluators. 
     All evaluations are overridden if the game is over.
     """
-    def __init__(self, *evaluators: list[Evaluator]) -> None:
+    def __init__(self, *evaluators: Evaluator) -> None:
         self.evaluators = evaluators
 
     def evaluate(self, board: chess.Board) -> Eval:

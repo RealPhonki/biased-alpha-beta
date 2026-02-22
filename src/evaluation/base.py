@@ -8,7 +8,7 @@ class Evaluator:
     This is the parent class for all evaluators. Evaluators must have an evaluate method that
     takes in a board position and returns a float.
     """
-    def evaluate(self, board: chess.Board)  -> Eval:
+    def evaluate(self, board: chess.Board) -> Eval:
         """ Returns an evaluation for a given board position
 
         Args:
