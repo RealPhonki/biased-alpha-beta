@@ -105,13 +105,13 @@ if __name__ == "__main__":
     from src.debug.profiler import profile
 
     # create instances
-    test_board = chess.Board("1r2r1k1/5ppp/8/8/q7/4R3/4QPPP/4RK2 w - - 0 1")
+    test_board = chess.Board()#"1r2r1k1/5ppp/8/8/q7/4R3/4QPPP/4RK2 w - - 0 1")
     eval_pipeline = EvaluationPipeline(MaterialEvaluator())
     sort_pipeline = MoveSortingPipeline(MvvLva())
     alphabeta = AlphaBeta(eval_pipeline, sort_pipeline)
 
     # profile alphabeta
-    time, _ = profile(alphabeta.get_best_move, [test_board, 3])
+    time, _ = profile(alphabeta.get_best_move, [test_board, 5])
 
     print(f"Time Elapsed: {time:.3f}s")
     print(f"NPS: {(alphabeta.nodes_searched / time):,.3f}")

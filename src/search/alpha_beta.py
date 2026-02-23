@@ -33,9 +33,9 @@ class AlphaBeta:
 
         self.nodes_searched = 0
 
-        best_score = -100_000
-        alpha = -100_000
-        beta = 100_000
+        best_score = -1_000_000
+        alpha = -1_000_000
+        beta = 1_000_000
 
         legal_moves = self.move_sorter.sort(board, board.legal_moves)
 
@@ -76,7 +76,7 @@ class AlphaBeta:
             return self.quiescence(board, alpha, beta)
 
         # default the best score to some low value
-        best_score = -100_000
+        best_score = -1_000_000
         legal_moves = self.move_sorter.sort(board, board.legal_moves)
 
         # play each legal move and score them
@@ -86,14 +86,14 @@ class AlphaBeta:
             score = -self.search(board, -beta, -alpha, depth - 1)
             board.pop()
 
+            # store the best score
+            best_score = max(best_score, score)
+
             # this position is too good, the opponent had a better move
             # earlier and won't choose this path (e.g calculating a bunch
             # of captures but assuming the opponent won't recapture)
             if score >= beta:
                 return best_score
-
-            # store the best score
-            best_score = max(best_score, score)
 
             # remember this score and ignore future moves that score lower
             alpha = max(alpha, score)
@@ -130,14 +130,14 @@ class AlphaBeta:
             score = -self.quiescence(board, -beta, -alpha)
             board.pop()
 
+            # store the best score
+            best_score = max(best_score, score)
+
             # this position is too good, the opponent had a better move
             # earlier and won't choose this path (e.g calculating a bunch
             # of captures but assuming the opponent won't recapture)
             if score >= beta:
                 return best_score
-
-            # store the best score
-            best_score = max(best_score, score)
 
             # remember this score and ignore future moves that score lower
             alpha = max(alpha, score)
@@ -149,13 +149,13 @@ if __name__ == "__main__":
     from src.debug.profiler import profile
 
     # create instances
-    test_board = chess.Board("1r2r1k1/5ppp/8/8/q7/4R3/4QPPP/4RK2 w - - 0 1")
+    test_board = chess.Board()#"1r2r1k1/5ppp/8/8/q7/4R3/4QPPP/4RK2 w - - 0 1")
     eval_pipeline = EvaluationPipeline(MaterialEvaluator())
     sort_pipeline = MoveSortingPipeline(MvvLva())
     alphabeta = AlphaBeta(eval_pipeline, sort_pipeline)
 
     # profile alphabeta
-    time, _ = profile(alphabeta.get_best_move, [test_board, 3])
+    time, _ = profile(alphabeta.get_best_move, [test_board, 5])
 
     print(f"Time Elapsed: {time:.3f}s")
     print(f"NPS: {(alphabeta.nodes_searched / time):,.3f}")
