@@ -73,7 +73,7 @@ class AlphaBeta:
 
         # maximum depth reached or game is over, return evaluation
         if depth == 0 or board.is_game_over():
-            return self.quiescence(board, alpha, beta)
+            return self.evaluator.evaluate(board)
 
         # default the best score to some low value
         best_score = -100_000
@@ -86,61 +86,17 @@ class AlphaBeta:
             score = -self.search(board, -beta, -alpha, depth - 1)
             board.pop()
 
-            # this position is too good, the opponent had a better move
-            # earlier and won't choose this path (e.g calculating a bunch
-            # of captures but assuming the opponent won't recapture)
-            if score >= beta:
-                return best_score
-
             # store the best score
             best_score = max(best_score, score)
 
             # remember this score and ignore future moves that score lower
             alpha = max(alpha, score)
-        
-        return best_score
-    
-    def quiescence(self, board: chess.Board, alpha: int, beta: int) -> Eval:
-        """ Performs a search of all captures and checks
-
-        Args:
-            board (chess.Board): The current board state.
-            alpha (int): The best score we can guarantee.
-            beta (int): The best score the opponent can guarantee.
-            depth (int): The current depth of the search.
-
-        Returns:
-            Eval: The evaluation determined by the evaluator.
-        """
-        self.nodes_searched += 1 # debug
-
-        # stand pat, ref: https://www.chessprogramming.org/Quiescence_Search
-        best_score = self.evaluator.evaluate(board)
-        if best_score >= beta:
-            return best_score
-        if best_score > alpha:
-            alpha = best_score
-
-        legal_moves = self.move_sorter.sort(board, board.generate_legal_captures())
-
-        # play each legal capture and score them
-        for move in legal_moves:
-            # negate the score from the last iteration, a good move for our opponent is bad for us
-            board.push(move)
-            score = -self.quiescence(board, -beta, -alpha)
-            board.pop()
 
             # this position is too good, the opponent had a better move
             # earlier and won't choose this path (e.g calculating a bunch
             # of captures but assuming the opponent won't recapture)
             if score >= beta:
                 return best_score
-
-            # store the best score
-            best_score = max(best_score, score)
-
-            # remember this score and ignore future moves that score lower
-            alpha = max(alpha, score)
         
         return best_score
 
