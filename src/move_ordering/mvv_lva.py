@@ -26,6 +26,8 @@ class MvvLva(MoveSorter):
     def sort(self, board: chess.Board, legal_moves: list[chess.Move]) -> list[chess.Move]:
         def score_move(move: chess.Move) -> int:
             if not board.is_capture(move):
+                if board.gives_check(move):
+                    return 39
                 return 0
             
             attacker = board.piece_type_at(move.from_square)

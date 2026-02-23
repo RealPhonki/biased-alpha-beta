@@ -105,7 +105,7 @@ if __name__ == "__main__":
     from src.debug.profiler import profile
 
     # create instances
-    test_board = chess.Board("rnbqkbr1/pppppppp/7n/8/2BPP3/5Q2/PPP2PPP/RNB1K1NR w KQq - 3 5")
+    test_board = chess.Board("5rk1/1ppb3p/p1pb4/6q1/3P1p1r/2P1R2P/PP1BQ1P1/5RKN w - - 0 1")
     eval_pipeline = EvaluationPipeline(MaterialEvaluator())
     sort_pipeline = MoveSortingPipeline(MvvLva())
     alphabeta = AlphaBeta(eval_pipeline, sort_pipeline)
