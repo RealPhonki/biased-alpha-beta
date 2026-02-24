@@ -1,5 +1,0 @@
-pyproject.toml
-pyfish.egg-info/PKG-INFO
-pyfish.egg-info/SOURCES.txt
-pyfish.egg-info/dependency_links.txt
-pyfish.egg-info/top_level.txt

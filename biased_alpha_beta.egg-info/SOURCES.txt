@@ -1,5 +1,0 @@
-pyproject.toml
-biased_alpha_beta.egg-info/PKG-INFO
-biased_alpha_beta.egg-info/SOURCES.txt
-biased_alpha_beta.egg-info/dependency_links.txt
-biased_alpha_beta.egg-info/top_level.txt
