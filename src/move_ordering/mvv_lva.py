@@ -23,8 +23,16 @@ class MvvLva(MoveSorter):
         None:   {KING:  0, QUEEN:  0, ROOK:  0, BISHOP:  0, KNIGHT:  0, PAWN:  0, None: 0},
     }
 
-    def sort(self, board: chess.Board, legal_moves: list[chess.Move]) -> list[chess.Move]:
+    def sort(
+        self,
+        board: chess.Board,
+        legal_moves: list[chess.Move],
+        pv_move: chess.Move
+    ) -> list[chess.Move]:
         def score_move(move: chess.Move) -> int:
+            if move == pv_move:
+                return 100
+            
             if not board.is_capture(move):
                 return 0
             

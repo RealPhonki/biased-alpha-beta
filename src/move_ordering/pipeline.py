@@ -11,9 +11,14 @@ class MoveSortingPipeline(MoveSorter):
     def __init__(self, *move_sorters: MoveSorter) -> None:
         self.move_sorters = move_sorters
 
-    def sort(self, board: chess.Board, legal_moves: list[chess.Move]) -> list[chess.Move]:
+    def sort(
+        self, 
+        board: chess.Board, 
+        legal_moves: list[chess.Move], 
+        pv_move: chess.Move
+    ) -> list[chess.Move]:
         sorted_moves = list(legal_moves)
         for move_sorter in self.move_sorters:
-            sorted_moves = move_sorter.sort(board, sorted_moves)
+            sorted_moves = move_sorter.sort(board, sorted_moves, pv_move)
         
         return sorted_moves

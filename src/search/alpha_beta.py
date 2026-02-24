@@ -8,6 +8,12 @@ from src.evaluation.base import Evaluator, Eval
 from src.move_ordering.pipeline import MoveSortingPipeline
 from src.move_ordering.mvv_lva import MoveSorter, MvvLva
 
+class SearchContext:
+    def __init__(self) -> None:
+        self.best_move = None
+        self.nodes_searched = 0
+        self.ply = 0
+
 class AlphaBeta:
     """ Evaluates a given board position with alphabeta search """
     def __init__(
@@ -15,11 +21,11 @@ class AlphaBeta:
         evaluation_pipeline: Evaluator,
         move_sorting_pipeline: MoveSorter
     ) -> None:
-        self.nodes_searched = 0
         self.evaluator = evaluation_pipeline
         self.move_sorter = move_sorting_pipeline
+        self.search_ctx = SearchContext()
 
-    def get_best_move(self, board: chess.Board, depth: int) -> chess.Move:
+    def get_best_move(self, board: chess.Board, max_depth: int) -> chess.Move:
         """ Searches all legal moves for a given position, scores them, and
         returns the move with the highest score.
 
@@ -31,31 +37,18 @@ class AlphaBeta:
             chess.Move: The best move determined by the algorithm
         """
 
-        self.nodes_searched = 0
+        self.search_ctx.best_move = None
+        self.search_ctx.nodes_searched = 0
 
-        best_score = -1_000_000
         alpha = -1_000_000
         beta = 1_000_000
 
-        legal_moves = self.move_sorter.sort(board, board.legal_moves)
+        for depth in range(1, max_depth + 1):
+            score = self.search(board, alpha, beta, depth)
 
-        best_move = legal_moves[0]
+            print(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
 
-        for move in legal_moves:
-            board.push(move)
-            score = -self.search(board, -beta, -alpha, depth - 1)
-            board.pop()
-
-            if score > best_score:
-                best_score = score
-                best_move = move
-            
-            alpha = max(alpha, score)
-
-            # required by uci
-            print(f"info depth {depth} score cp {int(best_score)} pv {best_move.uci()}")
-
-        return best_move
+        return self.search_ctx.best_move
 
     def search(self, board: chess.Board, alpha: int, beta: int, depth: int) -> Eval:
         """ Performs an alphabeta search recursively.
@@ -69,25 +62,43 @@ class AlphaBeta:
         Returns:
             Eval: The evaluation determined by the evaluator.
         """
-        self.nodes_searched += 1 # debug
+        self.search_ctx.nodes_searched += 1 # debug
 
-        # maximum depth reached or game is over, return evaluation
-        if depth == 0 or board.is_game_over():
+        # if the game is over then return the board evaluation
+        if board.is_game_over():
+            return self.evaluator.evaluate(board)
+
+        # maximum depth reached return quiescence
+        if depth == 0:
             return self.quiescence(board, alpha, beta)
 
         # default the best score to some low value
         best_score = -1_000_000
-        legal_moves = self.move_sorter.sort(board, board.legal_moves)
+
+        # if this is the root position then prioritize the pv move (from previous iterations)
+        if self.search_ctx.ply == 0 and self.search_ctx.best_move:
+            legal_moves = self.move_sorter.sort(board, board.legal_moves, self.search_ctx.best_move)
+        else:
+            legal_moves = self.move_sorter.sort(board, board.legal_moves, None)
 
         # play each legal move and score them
         for move in legal_moves:
+            self.search_ctx.ply += 1
+
             # negate the score from the last iteration, a good move for our opponent is bad for us
             board.push(move)
             score = -self.search(board, -beta, -alpha, depth - 1)
             board.pop()
 
+            self.search_ctx.ply -= 1
+
             # store the best score
-            best_score = max(best_score, score)
+            if score > best_score:
+                best_score = score
+                
+                # insert pv move
+                if self.search_ctx.ply == 0:
+                    self.search_ctx.best_move = move
 
             # this position is too good, the opponent had a better move
             # earlier and won't choose this path (e.g calculating a bunch
@@ -112,7 +123,7 @@ class AlphaBeta:
         Returns:
             Eval: The evaluation determined by the evaluator.
         """
-        self.nodes_searched += 1 # debug
+        self.search_ctx.nodes_searched += 1 # debug
 
         # stand pat, ref: https://www.chessprogramming.org/Quiescence_Search
         best_score = self.evaluator.evaluate(board)
@@ -121,7 +132,7 @@ class AlphaBeta:
         if best_score > alpha:
             alpha = best_score
 
-        legal_moves = self.move_sorter.sort(board, board.generate_legal_captures())
+        legal_moves = self.move_sorter.sort(board, board.generate_legal_captures(), pv_move=None)
 
         # play each legal capture and score them
         for move in legal_moves:
@@ -149,13 +160,13 @@ if __name__ == "__main__":
     from src.debug.profiler import profile
 
     # create instances
-    test_board = chess.Board()#"1r2r1k1/5ppp/8/8/q7/4R3/4QPPP/4RK2 w - - 0 1")
+    test_board = chess.Board("rnbqk2r/ppp1Pppp/8/2b5/8/5N2/PPP1PPPP/RNBQKB1R b KQkq - 0 5")
     eval_pipeline = EvaluationPipeline(MaterialEvaluator())
     sort_pipeline = MoveSortingPipeline(MvvLva())
     alphabeta = AlphaBeta(eval_pipeline, sort_pipeline)
 
     # profile alphabeta
-    time, _ = profile(alphabeta.get_best_move, [test_board, 5])
+    time, _ = profile(alphabeta.get_best_move, [test_board, 6])
 
     print(f"Time Elapsed: {time:.3f}s")
-    print(f"NPS: {(alphabeta.nodes_searched / time):,.3f}")
+    print(f"NPS: {(alphabeta.search_ctx.nodes_searched / time):,.3f}")
