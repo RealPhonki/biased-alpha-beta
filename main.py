@@ -8,13 +8,9 @@ import sys
 import chess
 
 # project
-from src.move_ordering.pipeline import MoveSortingPipeline
-from src.move_ordering.mvv_lva import MvvLva
-
-from src.evaluation.pipeline import EvaluationPipeline
-from src.evaluation.material import MaterialEvaluator
-
-from src.search.alpha_beta import AlphaBeta
+from src.search.move_ordering import MoveOrdering
+from src.search.evaluation import Evaluation
+from src.search.search import Engine
 
 from src.debug.logger import logger
 
@@ -24,9 +20,7 @@ class CommandError(Exception):
 class UCIHandler:
     def __init__(self) -> None:
         # subclasses
-        self.eval_pipeline = EvaluationPipeline(MaterialEvaluator())
-        self.sort_pipeline = MoveSortingPipeline(MvvLva())
-        self.engine = AlphaBeta(self.eval_pipeline, self.sort_pipeline)
+        self.engine = Engine(Evaluation(), MoveOrdering())
 
         # constants
         self.handlers = {

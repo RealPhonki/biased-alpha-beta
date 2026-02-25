@@ -5,19 +5,18 @@ import chess
 from src.evaluation.pipeline import EvaluationPipeline
 from src.evaluation.base import Evaluator, Eval
 
-from src.move_ordering.pipeline import MoveSortingPipeline
-from src.move_ordering.mvv_lva import MoveSorter, MvvLva
+from src.search.move_ordering import MoveOrdering
 
 class AlphaBeta:
     """ Evaluates a given board position with alphabeta search """
     def __init__(
         self,
         evaluation_pipeline: Evaluator,
-        move_sorting_pipeline: MoveSorter
+        move_sorter: MoveOrdering
     ) -> None:
         self.nodes_searched = 0
         self.evaluator = evaluation_pipeline
-        self.move_sorter = move_sorting_pipeline
+        self.move_sorter = move_sorter
 
     def get_best_move(self, board: chess.Board, depth: int) -> chess.Move:
         """ Searches all legal moves for a given position, scores them, and
@@ -151,8 +150,8 @@ if __name__ == "__main__":
     # create instances
     test_board = chess.Board("rnbqk2r/ppp1Pppp/8/2b5/8/5N2/PPP1PPPP/RNBQKB1R b KQkq - 0 5")
     eval_pipeline = EvaluationPipeline(MaterialEvaluator())
-    sort_pipeline = MoveSortingPipeline(MvvLva())
-    alphabeta = AlphaBeta(eval_pipeline, sort_pipeline)
+    move_sorter = MoveOrdering()
+    alphabeta = AlphaBeta(eval_pipeline, move_sorter)
 
     # profile alphabeta
     time, _ = profile(alphabeta.get_best_move, [test_board, 6])

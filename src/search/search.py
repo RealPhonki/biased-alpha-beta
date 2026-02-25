@@ -2,11 +2,8 @@
 import chess
 
 # project
-from src.evaluation.pipeline import EvaluationPipeline
-from src.evaluation.base import Evaluator, Eval
-
-from src.move_ordering.pipeline import MoveSortingPipeline
-from src.move_ordering.mvv_lva import MoveSorter, MvvLva
+from src.search.move_ordering import MoveOrdering
+from src.search.evaluation import Evaluation
 
 from src.debug.logger import logger
 
@@ -17,15 +14,15 @@ class SearchContext:
         self.ply = 0
         self.stop_flag = False
 
-class AlphaBeta:
+class Engine:
     """ Evaluates a given board position with alphabeta search """
     def __init__(
         self,
-        evaluation_pipeline: Evaluator,
-        move_sorting_pipeline: MoveSorter
+        evaluator: Evaluation,
+        move_sorter: MoveOrdering
     ) -> None:
-        self.evaluator = evaluation_pipeline
-        self.move_sorter = move_sorting_pipeline
+        self.evaluator = evaluator
+        self.move_sorter = move_sorter
         self.search_ctx = SearchContext()
 
     def get_best_move(self, board: chess.Board, max_depth: int) -> chess.Move:
@@ -58,7 +55,7 @@ class AlphaBeta:
 
         return self.search_ctx.best_move
 
-    def search(self, board: chess.Board, alpha: int, beta: int, depth: int) -> Eval:
+    def search(self, board: chess.Board, alpha: int, beta: int, depth: int) -> int:
         """ Performs an alphabeta search recursively.
 
         Args:
@@ -123,7 +120,7 @@ class AlphaBeta:
         
         return best_score
     
-    def quiescence(self, board: chess.Board, alpha: int, beta: int) -> Eval:
+    def quiescence(self, board: chess.Board, alpha: int, beta: int) -> int:
         """ Performs a search of all captures and checks
 
         Args:
@@ -172,17 +169,15 @@ class AlphaBeta:
         return best_score
 
 if __name__ == "__main__":
-    from src.evaluation.material import MaterialEvaluator
     from src.debug.profiler import profile
 
     # create instances
-    test_board = chess.Board("rnbqk2r/ppp1Pppp/8/2b5/8/5N2/PPP1PPPP/RNBQKB1R b KQkq - 0 5")
-    eval_pipeline = EvaluationPipeline(MaterialEvaluator())
-    sort_pipeline = MoveSortingPipeline(MvvLva())
-    alphabeta = AlphaBeta(eval_pipeline, sort_pipeline)
+    test_board = chess.Board()#"rnbqkb1r/pp1ppppp/3P3n/6B1/2B5/2N2N1P/PPP1QPP1/2KR3R b q - 0 13")
+    # info depth 5 nodes 1579993 score cp 0 pv b8a6
+    alphabeta = Engine(Evaluation(), MoveOrdering())
 
     # profile alphabeta
-    time, _ = profile(alphabeta.get_best_move, [test_board, 6])
+    time, _ = profile(alphabeta.get_best_move, [test_board, 4])
 
     print(f"Time Elapsed: {time:.3f}s")
     print(f"NPS: {(alphabeta.search_ctx.nodes_searched / time):,.3f}")
