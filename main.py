@@ -65,6 +65,8 @@ class UCIHandler:
                     logger.log(str(error), logger.WARNING)
             else:
                 logger.log(f"Unknown command: '{command}'", logger.WARNING)
+        
+        logger.close() # VERY IMPORTANT
     
     def uci(self, *_) -> None:
         print("id name BiasFish")

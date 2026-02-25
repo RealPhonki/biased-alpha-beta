@@ -1,6 +1,7 @@
 # standard
 from datetime import datetime
 import pathlib
+import io
 
 class Logger:
     """ Handles all logging """
@@ -11,8 +12,9 @@ class Logger:
     ERROR   = "ERROR - "
     def __init__(self) -> None:
         self.path = pathlib.Path(self.make_path())
-
         self.make_dir()
+
+        self.file = self.open_file()
 
     def make_path(self) -> str:
         """ Constructs a path for the current year and month.
@@ -29,6 +31,10 @@ class Logger:
         if not self.path.exists():
             self.path.mkdir(parents=True)
     
+    def open_file(self) -> io.TextIOWrapper:
+        file_path = self.path / f"{datetime.now().day}.log"
+        return open(file_path, "a", encoding="UTF-8", buffering=1)
+
     def log(self, text: str, direction = "INFO - ") -> None:
         """ Writes a message to the log file for the current time
 
@@ -36,7 +42,10 @@ class Logger:
             text (str): The message to write to the log file
             direction (str, optional): The source of the message. Defaults to "INFO".
         """
-        with open(self.path / f"{datetime.now().day}.log", "a", encoding="UTF-8") as file:
-            file.write(str(datetime.now().time()) + " - " + direction + text + "\n")
+        self.file.write(f"{datetime.now().time()} - {direction}{text}\n")
+    
+    def close(self):
+        if self.file and not self.file.closed:
+            self.file.close()
 
 logger = Logger()
