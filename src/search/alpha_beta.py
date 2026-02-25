@@ -8,6 +8,8 @@ from src.evaluation.base import Evaluator, Eval
 from src.move_ordering.pipeline import MoveSortingPipeline
 from src.move_ordering.mvv_lva import MoveSorter, MvvLva
 
+from src.debug.logger import logger
+
 class SearchContext:
     def __init__(self) -> None:
         self.best_move = None
@@ -47,6 +49,7 @@ class AlphaBeta:
             score = self.search(board, alpha, beta, depth)
 
             print(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
+            logger.log(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
 
         return self.search_ctx.best_move
 
