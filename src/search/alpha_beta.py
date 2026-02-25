@@ -15,6 +15,7 @@ class SearchContext:
         self.best_move = None
         self.nodes_searched = 0
         self.ply = 0
+        self.stop_flag = False
 
 class AlphaBeta:
     """ Evaluates a given board position with alphabeta search """
@@ -39,14 +40,18 @@ class AlphaBeta:
             chess.Move: The best move determined by the algorithm
         """
 
-        self.search_ctx.best_move = None
+        self.search_ctx.best_move = list(board.legal_moves)[0]
         self.search_ctx.nodes_searched = 0
+        self.search_ctx.stop_flag = False
 
         alpha = -1_000_000
         beta = 1_000_000
 
         for depth in range(1, max_depth + 1):
             score = self.search(board, alpha, beta, depth)
+
+            if self.search_ctx.stop_flag:
+                break
 
             print(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
             logger.log(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
@@ -65,6 +70,10 @@ class AlphaBeta:
         Returns:
             Eval: The evaluation determined by the evaluator.
         """
+        # check if the search is canceled
+        if self.search_ctx.stop_flag:
+            return 499
+
         self.search_ctx.nodes_searched += 1 # debug
 
         # if the game is over then return the board evaluation
@@ -126,6 +135,10 @@ class AlphaBeta:
         Returns:
             Eval: The evaluation determined by the evaluator.
         """
+        # check if the search is canceled
+        if self.search_ctx.stop_flag:
+            return 499
+
         self.search_ctx.nodes_searched += 1 # debug
 
         # stand pat, ref: https://www.chessprogramming.org/Quiescence_Search

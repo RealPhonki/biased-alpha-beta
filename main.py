@@ -1,6 +1,7 @@
 # pylint: disable=broad-exception-caught
 
 # standard
+import threading
 import sys
 
 # third party
@@ -32,12 +33,14 @@ class UCIHandler:
             "uci": self.uci,
             "isready": self.isready,
             "position": self.position,
-            "go": self.go
+            "go": self.go,
+            "stop": self.stop
         }
 
         # attributes
         self.board = chess.Board()
         self.move_stack: list[chess.Move] = []
+        self.search_thread = None
 
     def read(self) -> str:
         command = sys.stdin.readline()
@@ -121,13 +124,24 @@ class UCIHandler:
         if head == "depth":
             depth = int(body[0])
         else:
-            depth = 5
+            raise CommandError()
         
+        self.search_thread = threading.Thread(target=self._search, args=[depth])
+        self.search_thread.start()
+    
+    def _search(self, depth: int) -> None:
         best_move = self.engine.get_best_move(self.board, depth)
         print(f"bestmove {best_move}")
         logger.log(f"bestmove {best_move}")
         sys.stdout.flush()
 
+    def stop(self, *_) -> None:
+        logger.log("Aborting search...")
+
+        if self.search_thread and self.search_thread.is_alive():
+            self.engine.search_ctx.stop_flag = True
+            self.search_thread.join() # wait until the thread terminates
+        
 if __name__ == "__main__":
     app = UCIHandler()
     app.run()
