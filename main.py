@@ -34,7 +34,8 @@ class UCIHandler:
             "isready": self.isready,
             "position": self.position,
             "go": self.go,
-            "stop": self.stop
+            "stop": self.stop,
+            "quit": self.quit
         }
 
         # attributes
@@ -48,8 +49,14 @@ class UCIHandler:
         Returns:
             str: Represents the stripped input.
         """
-        command = sys.stdin.readline()
-        return command.strip()
+        raw_input = sys.stdin.readline()
+
+        # check for EOF
+        if raw_input == "":
+            logger.log("GUI closed connection")
+            self.quit()
+
+        return raw_input.strip().split()
 
     def run(self) -> None:
         """
@@ -61,16 +68,15 @@ class UCIHandler:
         uci_input = None
 
         while True:
-            uci_input = self.read().split()
+            uci_input = self.read()
 
-            # check if command exists
-            if len(uci_input) == 0 or uci_input[0] == "quit":
-                logger.log("GUI closed connection")
-                break
+            # ignore empty lines
+            if len(uci_input) == 0:
+                continue
 
             command = uci_input[0]
             uci_input.pop(0)
-            logger.log(" ".join(uci_input), logger.IN)
+            logger.log(f"{command} " + " ".join(uci_input), logger.IN)
 
             if command in self.handlers:
                 try:
@@ -80,8 +86,6 @@ class UCIHandler:
                     logger.log(str(error), logger.WARNING)
             else:
                 logger.log(f"Unknown command: '{command}'", logger.WARNING)
-        
-        logger.close() # VERY IMPORTANT
     
     def uci(self, *_) -> None:
         """
@@ -172,11 +176,20 @@ class UCIHandler:
         Handles the stop command. 
         This method kills the engine's search thread if it exists.
         """
-        logger.log("Aborting search...")
-
         if self.search_thread and self.search_thread.is_alive():
+            logger.log("Aborting search...")
+
             self.engine.search_ctx.stop_flag = True
             self.search_thread.join() # wait until the thread terminates
+    
+    def quit(self) -> None:
+        """
+        Closes the log file and kills the engine before terminating the script
+        """
+        self.stop()
+        logger.log("Quiting...")
+        logger.close()
+        sys.exit(0)
         
 if __name__ == "__main__":
     app = UCIHandler()

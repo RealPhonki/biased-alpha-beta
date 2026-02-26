@@ -45,6 +45,9 @@ class Logger:
         self.file.write(f"{datetime.now().time()} - {direction}{text}\n")
     
     def close(self):
+        """ 
+        Closes the file
+        """
         if self.file and not self.file.closed:
             self.file.close()
 
