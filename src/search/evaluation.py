@@ -6,6 +6,7 @@ class Evaluation:
     Returns the absolute evaluation for a given board state.
     """
     def __init__(self) -> None:
+        self.PIECES = [chess.PAWN, chess.BISHOP, chess.KNIGHT, chess.ROOK, chess.QUEEN, chess.KING]
         self.PIECE_VALUES = {
             chess.PAWN: 100,
             chess.BISHOP: 300,
@@ -28,7 +29,7 @@ class Evaluation:
         white_material = 0
         black_material = 0
 
-        for piece_type in [chess.PAWN, chess.BISHOP, chess.KNIGHT, chess.ROOK, chess.QUEEN, chess.KING]:
+        for piece_type in self.PIECES:
             value = self.PIECE_VALUES[piece_type]
 
             white_material += len(board.pieces(piece_type, chess.WHITE)) * value

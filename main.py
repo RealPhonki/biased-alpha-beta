@@ -15,9 +15,15 @@ from src.search.search import Engine
 from src.debug.logger import logger
 
 class CommandError(Exception):
-    ...
+    """
+    This exception is raised when the UCI Handler processes
+    an unrecognized command.
+    """
 
 class UCIHandler:
+    """
+    This class handles all uci commands and sends them to the engine.
+    """
     def __init__(self) -> None:
         # subclasses
         self.engine = Engine(Evaluation(), MoveOrdering())
@@ -37,10 +43,21 @@ class UCIHandler:
         self.search_thread = None
 
     def read(self) -> str:
+        """ Reads the input, strips whitespaces, and returns it
+
+        Returns:
+            str: Represents the stripped input.
+        """
         command = sys.stdin.readline()
         return command.strip()
 
     def run(self) -> None:
+        """
+        Starts an infinite loop and listens for commands.
+        When commands are entered they are indexed with the handler hashmap
+        and the command is executed if it exists.
+        """
+
         uci_input = None
 
         while True:
@@ -52,13 +69,14 @@ class UCIHandler:
                 break
 
             command = uci_input[0]
+            uci_input.pop(0)
             logger.log(" ".join(uci_input), logger.IN)
 
             if command in self.handlers:
                 try:
-                    self.handlers[command](*uci_input[1:])
+                    self.handlers[command](*uci_input)
                 except Exception as error:
-                    logger.log(f"Command error '{command}' with args {uci_input[1:]}", logger.WARNING)
+                    logger.log(f"Command error '{command}' with args {uci_input}", logger.WARNING)
                     logger.log(str(error), logger.WARNING)
             else:
                 logger.log(f"Unknown command: '{command}'", logger.WARNING)
@@ -66,6 +84,9 @@ class UCIHandler:
         logger.close() # VERY IMPORTANT
     
     def uci(self, *_) -> None:
+        """
+        Handles the UCI command
+        """
         print("id name BiasFish")
         print("id author RealPhonki")
         print("uciok")
@@ -75,11 +96,21 @@ class UCIHandler:
         sys.stdout.flush()
     
     def isready(self, *_) -> None:
+        """
+        Handles the isready command
+        """
         print("readyok")
         logger.log("readyok", logger.OUT)
         sys.stdout.flush()
     
     def position(self, *args) -> None:
+        """
+        Handles the position command. This command sets the board state and
+        loads the move stack if specified.
+
+        Raises:
+            CommandError: Represents the exception raised when unknown arguments are passed
+        """
         head, body = args[0], list(args[1:])
 
         # load start position
@@ -113,6 +144,13 @@ class UCIHandler:
             logger.log("moves set: " + ", ".join(body[1:]))
     
     def go(self, *args) -> None:
+        """
+        Handles the go command.
+        This method starts a new thread and instructs the engine to search using that thread.
+
+        Raises:
+            CommandError: Represents the exception raised when unknown arguments are passed.
+        """
         head, body = args[0], args[1:]
 
         if head == "depth":
@@ -130,6 +168,10 @@ class UCIHandler:
         sys.stdout.flush()
 
     def stop(self, *_) -> None:
+        """
+        Handles the stop command. 
+        This method kills the engine's search thread if it exists.
+        """
         logger.log("Aborting search...")
 
         if self.search_thread and self.search_thread.is_alive():
