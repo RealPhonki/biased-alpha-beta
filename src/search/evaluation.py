@@ -47,6 +47,13 @@ class Evaluation:
         Returns:
             int: Represents the evaluation.
         """
+        if board.is_game_over():
+            if board.is_checkmate():
+                # this value is negative because it will be negated
+                # when passed to the previous ply
+                return -100_000
+            return 0
+
         score = 0
 
         score += self.count_material(board)

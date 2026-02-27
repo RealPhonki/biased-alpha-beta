@@ -8,6 +8,9 @@ from src.search.evaluation import Evaluation
 from src.debug.logger import logger
 
 class SearchContext:
+    """
+    This class contains global data that is used during search
+    """
     def __init__(self) -> None:
         self.best_move = None
         self.nodes_searched = 0
@@ -172,12 +175,12 @@ if __name__ == "__main__":
     from src.debug.profiler import profile
 
     # create instances
-    test_board = chess.Board()#"rnbqkb1r/pp1ppppp/3P3n/6B1/2B5/2N2N1P/PPP1QPP1/2KR3R b q - 0 13")
+    test_board = chess.Board("r1b1k2r/ppp2pp1/2p5/2b1q3/6p1/3P4/PPP1BPP1/RNBQ1RK1 w kq - 0 11")
     # info depth 5 nodes 1579993 score cp 0 pv b8a6
     alphabeta = Engine(Evaluation(), MoveOrdering())
 
     # profile alphabeta
-    time, _ = profile(alphabeta.get_best_move, [test_board, 4])
+    time, _ = profile(alphabeta.get_best_move, [test_board, 5])
 
     print(f"Time Elapsed: {time:.3f}s")
     print(f"NPS: {(alphabeta.search_ctx.nodes_searched / time):,.3f}")
