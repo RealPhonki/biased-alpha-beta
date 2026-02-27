@@ -28,6 +28,8 @@ class Engine:
         self.move_sorter = move_sorter
         self.search_ctx = SearchContext()
 
+        self.MAX_PLY = 10
+
     def get_best_move(self, board: chess.Board, max_depth: int) -> chess.Move:
         """ Searches all legal moves for a given position, scores them, and
         returns the move with the highest score.
@@ -143,7 +145,7 @@ class Engine:
 
         # stand pat, ref: https://www.chessprogramming.org/Quiescence_Search
         best_score = self.evaluator.evaluate(board)
-        if best_score >= beta:
+        if self.search_ctx.ply == self.MAX_PLY or best_score >= beta:
             return best_score
         if best_score > alpha:
             alpha = best_score
@@ -152,10 +154,14 @@ class Engine:
 
         # play each legal capture and score them
         for move in legal_moves:
+            self.search_ctx.ply += 1
+
             # negate the score from the last iteration, a good move for our opponent is bad for us
             board.push(move)
             score = -self.quiescence(board, -beta, -alpha)
             board.pop()
+
+            self.search_ctx.ply -= 1
 
             # store the best score
             best_score = max(best_score, score)
@@ -180,7 +186,7 @@ if __name__ == "__main__":
     alphabeta = Engine(Evaluation(), MoveOrdering())
 
     # profile alphabeta
-    time, _ = profile(alphabeta.get_best_move, [test_board, 5])
+    time, _ = profile(alphabeta.get_best_move, [test_board, 4])
 
     print(f"Time Elapsed: {time:.3f}s")
     print(f"NPS: {(alphabeta.search_ctx.nodes_searched / time):,.3f}")
