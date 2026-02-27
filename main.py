@@ -10,7 +10,7 @@ import chess
 # project
 from src.search.move_ordering import MoveOrdering
 from src.search.evaluation import Evaluation
-from src.search.search import Engine
+from search.engine import Engine
 
 from src.debug.logger import logger
 
