@@ -3,7 +3,7 @@ import chess
 
 class Evaluation:
     """
-    Returns the absolute evaluation for a given board state.
+    Returns the relative evaluation for a given board state.
     """
     def __init__(self) -> None:
         self.PIECES = [chess.PAWN, chess.BISHOP, chess.KNIGHT, chess.ROOK, chess.QUEEN, chess.KING]
@@ -18,7 +18,7 @@ class Evaluation:
 
     def count_material(self, board: chess.Board) -> int:
         """
-        Returns the material difference for a given chess position.
+        Returns the material difference for a given chess position as an absolute evaluation.
 
         Args:
             board (chess.Board): Represents the board state.
@@ -37,9 +37,9 @@ class Evaluation:
 
         return white_material - black_material
 
-    def evaluate(self, board: chess.Board) -> int:
+    def evaluate(self, board: chess.Board, ply: int) -> int:
         """
-        Returns the absolute evaluation for a given board state.
+        Returns the relative evaluation for a given board state.
 
         Args:
             board (chess.Board): Represents the board state.
@@ -49,13 +49,13 @@ class Evaluation:
         """
         if board.is_game_over():
             if board.is_checkmate():
-                # this value is negative because it will be negated
-                # when passed to the previous ply
-                return -100_000
+                # in a negamax framework, positive is always good and negative is always bad
+                # because the score perspective is adjusted at every ply
+                return -100_000 + ply
             return 0
 
         score = 0
 
         score += self.count_material(board)
 
-        return score
+        return score if board.turn == chess.WHITE else -score

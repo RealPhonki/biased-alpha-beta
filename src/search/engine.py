@@ -7,6 +7,11 @@ from src.search.evaluation import Evaluation
 
 from src.debug.logger import logger
 
+class SearchAbortionException(Exception):
+    """
+    Represents the exception raised when the search is canceled during search
+    """
+
 class SearchContext:
     """
     This class contains global data that is used during search
@@ -46,6 +51,11 @@ class Engine:
             chess.Move: The best move determined by the algorithm
         """
 
+        # the best move is defaulted to the first move before search, but if there are no legal
+        # moves that will raise in index error
+        if board.is_game_over():
+            return None
+
         self.search_ctx.best_move = list(board.legal_moves)[0]
         self.search_ctx.nodes_searched = 0
         self.search_ctx.stop_flag = False
@@ -54,9 +64,10 @@ class Engine:
         beta = 1_000_000
 
         for depth in range(1, max_depth + 1):
-            score = self.search(board, alpha, beta, depth)
+            try:
+                score = self.search(board, alpha, beta, depth)
             
-            if self.search_ctx.stop_flag:
+            except SearchAbortionException():
                 logger.log("Search aborted")
                 return self.search_ctx.last_best
 
@@ -83,7 +94,7 @@ class Engine:
 
         # if the game is over then return the board evaluation
         if board.is_game_over():
-            return self.evaluator.evaluate(board)
+            return self.evaluator.evaluate(board, self.search_ctx.ply)
 
         # maximum depth reached return quiescence
         if depth == 0:
@@ -110,10 +121,7 @@ class Engine:
             self.search_ctx.ply -= 1
 
             if self.search_ctx.stop_flag:
-                if board.turn == chess.WHITE:
-                    # this value will be negated at the previous ply.
-                    return 1_000_000
-                return -1_000_000
+                raise SearchAbortionException()
 
             # store the best score
             if score > best_score:
@@ -147,16 +155,12 @@ class Engine:
             Eval: The evaluation determined by the evaluator.
         """
         if self.search_ctx.stop_flag:
-            if board.turn == chess.WHITE:
-                # this value will be negated at the previous ply.
-                return 1_000_000
-            return -1_000_000
+            raise SearchAbortionException()
         
-
         self.search_ctx.nodes_searched += 1 # debug
 
         # stand pat, ref: https://www.chessprogramming.org/Quiescence_Search
-        best_score = self.evaluator.evaluate(board)
+        best_score = self.evaluator.evaluate(board, self.search_ctx.ply)
         if self.search_ctx.ply == self.MAX_PLY or best_score >= beta:
             return best_score
         if best_score > alpha:
@@ -193,12 +197,12 @@ if __name__ == "__main__":
     from src.debug.profiler import profile
 
     # create instances
-    test_board = chess.Board("rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2")
+    test_board = chess.Board("rnb1kbnr/pppp1ppp/8/8/4Pp1q/5N2/PPPP2PP/RNBQKB1R w KQkq - 2 4")
     # info depth 5 nodes 1579993 score cp 0 pv b8a6
     alphabeta = Engine(Evaluation(), MoveOrdering())
 
     # profile alphabeta
-    time, _ = profile(alphabeta.get_best_move, [test_board, 4])
+    time, _ = profile(alphabeta.get_best_move, [test_board, 1])
 
     print(f"Time Elapsed: {time:.3f}s")
     print(f"NPS: {(alphabeta.search_ctx.nodes_searched / time):,.3f}")
