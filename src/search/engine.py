@@ -17,6 +17,10 @@ class SearchContext:
         self.ply = 0
         self.stop_flag = False
 
+        # temporary handler to force the engine to revert to the best move from
+        # the previous iteration if a given iteration is canceled.
+        self.last_best = None
+
 class Engine:
     """ Evaluates a given board position with alphabeta search """
     def __init__(
@@ -51,9 +55,12 @@ class Engine:
 
         for depth in range(1, max_depth + 1):
             score = self.search(board, alpha, beta, depth)
-
+            
             if self.search_ctx.stop_flag:
-                break
+                logger.log("Search aborted")
+                return self.search_ctx.last_best
+
+            self.search_ctx.last_best = self.search_ctx.best_move
 
             print(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
             logger.log(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
@@ -72,10 +79,6 @@ class Engine:
         Returns:
             Eval: The evaluation determined by the evaluator.
         """
-        # check if the search is canceled
-        if self.search_ctx.stop_flag:
-            return 499
-
         self.search_ctx.nodes_searched += 1 # debug
 
         # if the game is over then return the board evaluation
@@ -105,6 +108,12 @@ class Engine:
             board.pop()
 
             self.search_ctx.ply -= 1
+
+            if self.search_ctx.stop_flag:
+                if board.turn == chess.WHITE:
+                    # this value will be negated at the previous ply.
+                    return 1_000_000
+                return -1_000_000
 
             # store the best score
             if score > best_score:
@@ -137,9 +146,12 @@ class Engine:
         Returns:
             Eval: The evaluation determined by the evaluator.
         """
-        # check if the search is canceled
         if self.search_ctx.stop_flag:
-            return 499
+            if board.turn == chess.WHITE:
+                # this value will be negated at the previous ply.
+                return 1_000_000
+            return -1_000_000
+        
 
         self.search_ctx.nodes_searched += 1 # debug
 
@@ -181,7 +193,7 @@ if __name__ == "__main__":
     from src.debug.profiler import profile
 
     # create instances
-    test_board = chess.Board("r1b1k2r/ppp2pp1/2p5/2b1q3/6p1/3P4/PPP1BPP1/RNBQ1RK1 w kq - 0 11")
+    test_board = chess.Board("rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2")
     # info depth 5 nodes 1579993 score cp 0 pv b8a6
     alphabeta = Engine(Evaluation(), MoveOrdering())
 

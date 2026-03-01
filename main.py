@@ -10,7 +10,7 @@ import chess
 # project
 from src.search.move_ordering import MoveOrdering
 from src.search.evaluation import Evaluation
-from search.engine import Engine
+from src.search.engine import Engine
 
 from src.debug.logger import logger
 
@@ -145,7 +145,7 @@ class UCIHandler:
 
                 self.board.push(move)
 
-            logger.log("moves set: " + ", ".join(body[1:]))
+            logger.log("moves set: " + ", ".join(body))
     
     def go(self, *args) -> None:
         """
