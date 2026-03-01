@@ -1,3 +1,7 @@
+
+MATE_SCORE = 100_000
+INF = 1_000_000
+
 MG_VALUE = [
     None,
     82,   # chess.PAWN   = 1

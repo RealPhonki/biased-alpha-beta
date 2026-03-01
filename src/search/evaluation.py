@@ -2,7 +2,7 @@
 import chess
 
 # project
-from src.search.eval_heuristics import MG_PESTO_TABLE
+from src.search.eval_heuristics import MG_PESTO_TABLE, MATE_SCORE
 
 class Evaluation:
     """
@@ -75,7 +75,7 @@ class Evaluation:
             if board.is_checkmate():
                 # in a negamax framework, positive is always good and negative is always bad
                 # because the score perspective is adjusted at every ply
-                return -100_000 + ply
+                return -MATE_SCORE - ply
             return 0
 
         score = 0

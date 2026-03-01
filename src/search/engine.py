@@ -4,6 +4,7 @@
 import chess
 
 # project
+from src.search.eval_heuristics import MATE_SCORE, INF
 from src.search.move_ordering import MoveOrdering
 from src.search.evaluation import Evaluation
 
@@ -63,8 +64,8 @@ class Engine:
         self.search_ctx.ply = 0
         self.search_ctx.stop_flag = False
 
-        alpha = -1_000_000
-        beta = 1_000_000
+        alpha = -INF
+        beta = INF
 
         for depth in range(1, max_depth + 1):
             try:
@@ -76,8 +77,14 @@ class Engine:
             
             self.search_ctx.last_best = self.search_ctx.best_move
 
-            print(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
-            logger.log(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
+            if abs(score) > MATE_SCORE - self.MAX_PLY:
+                mate = abs(score) - MATE_SCORE if score > 0 else MATE_SCORE - abs(score)
+                print(f"info depth {depth} score mate {mate} pv {self.search_ctx.best_move}")
+                logger.log(f"info depth {depth} score mate {mate} pv {self.search_ctx.best_move}")
+
+            else:
+                print(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
+                logger.log(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
 
         return self.search_ctx.best_move
 
@@ -104,7 +111,7 @@ class Engine:
             return self.quiescence(board, alpha, beta)
 
         # default the best score to some low value
-        best_score = -1_000_000
+        best_score = -INF
 
         # if this is the root position then prioritize the pv move (from previous iterations)
         if self.search_ctx.ply == 0 and self.search_ctx.best_move:
