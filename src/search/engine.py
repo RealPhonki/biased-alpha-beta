@@ -1,3 +1,5 @@
+# pylint: disable=line-too-long
+
 # third party
 import chess
 
@@ -71,7 +73,7 @@ class Engine:
             except SearchAbortionException():
                 logger.log("Search aborted")
                 return self.search_ctx.last_best
-
+            
             self.search_ctx.last_best = self.search_ctx.best_move
 
             print(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
