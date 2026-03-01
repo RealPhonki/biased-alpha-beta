@@ -58,6 +58,7 @@ class Engine:
 
         self.search_ctx.best_move = list(board.legal_moves)[0]
         self.search_ctx.nodes_searched = 0
+        self.search_ctx.ply = 0
         self.search_ctx.stop_flag = False
 
         alpha = -1_000_000
@@ -119,7 +120,7 @@ class Engine:
             board.pop()
 
             self.search_ctx.ply -= 1
-
+            
             if self.search_ctx.stop_flag:
                 raise SearchAbortionException()
 
@@ -197,12 +198,12 @@ if __name__ == "__main__":
     from src.debug.profiler import profile
 
     # create instances
-    test_board = chess.Board("rnb1kbnr/pppp1ppp/8/8/4Pp1q/5N2/PPPP2PP/RNBQKB1R w KQkq - 2 4")
+    test_board = chess.Board("rnbqkbnr/pppp1ppp/8/4p3/4PP2/8/PPPP2PP/RNBQKBNR b KQkq - 0 2")
     # info depth 5 nodes 1579993 score cp 0 pv b8a6
     alphabeta = Engine(Evaluation(), MoveOrdering())
 
     # profile alphabeta
-    time, _ = profile(alphabeta.get_best_move, [test_board, 1])
+    time, _ = profile(alphabeta.get_best_move, [test_board, 4])
 
     print(f"Time Elapsed: {time:.3f}s")
     print(f"NPS: {(alphabeta.search_ctx.nodes_searched / time):,.3f}")
