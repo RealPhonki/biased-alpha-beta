@@ -92,8 +92,13 @@ class Engine:
         Returns:
             chess.Move: Represents the best move found during search.
         """
+        # don't search if the game is over
+        legal_moves = list(board.legal_moves)
+        if len(legal_moves) == 0:
+            return None
+
         # reset search context from previous searches to prevent data leakage
-        self.search_ctx.best_move = None
+        self.search_ctx.best_move = legal_moves[0]
         self.search_ctx.stop_flag = False
 
         # increase depth with each iteration

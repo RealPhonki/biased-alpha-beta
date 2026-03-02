@@ -2,7 +2,7 @@
 import chess
 
 # project
-from src.search.eval_heuristics import BLACK_MG_PESTO_TABLE, WHITE_MG_PESTO_TABLE, MATE_SCORE
+from src.search.eval_heuristics import BLACK_MG_PESTO_TABLE, BLACK_EG_PESTO_TABLE, WHITE_MG_PESTO_TABLE, WHITE_EG_PESTO_TABLE, PHASE_VALUE, MATE_SCORE
 
 class Evaluation:
     """
@@ -22,16 +22,30 @@ class Evaluation:
         Returns:
             int: Represents the evaluation.
         """
-        score = 0
+        mg_white = 0
+        eg_white = 0
+        mg_black = 0
+        eg_black = 0
+        game_phase = 0
 
+        # evaluate each piece
         for piece_type in self.PIECES:
             for square in board.pieces(piece_type, chess.WHITE):
-                score += WHITE_MG_PESTO_TABLE[piece_type][square]
+                game_phase += PHASE_VALUE[piece_type]
+                mg_white += WHITE_MG_PESTO_TABLE[piece_type][square]
+                eg_white += WHITE_EG_PESTO_TABLE[piece_type][square]
             
             for square in board.pieces(piece_type, chess.BLACK):
-                score -= BLACK_MG_PESTO_TABLE[piece_type][square]
+                game_phase += PHASE_VALUE[piece_type]
+                mg_black += BLACK_MG_PESTO_TABLE[piece_type][square]
+                eg_black += BLACK_EG_PESTO_TABLE[piece_type][square]
 
-        return score
+        # calculate tapered evaluation
+        mg_score = mg_white - mg_black
+        eg_score = eg_white - eg_black
+        mg_phase = min(game_phase, 24)
+        eg_phase = 24 - mg_phase
+        return (mg_score * mg_phase + eg_score * eg_phase) // 24
     
     def evaluate_checkmate(self, board: chess.Board, ply) -> int:
         """
