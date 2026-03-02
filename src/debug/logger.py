@@ -32,6 +32,11 @@ class Logger:
             self.path.mkdir(parents=True)
     
     def open_file(self) -> io.TextIOWrapper:
+        """ Returns the IO Wrapper for the log file
+
+        Returns:
+            io.TextIOWrapper: Represents the wrapper for the data stream
+        """
         file_path = self.path / f"{datetime.now().day}.log"
         return open(file_path, "a", encoding="UTF-8", buffering=1)
 

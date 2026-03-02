@@ -14,12 +14,13 @@ class Evaluation:
     def count_material(self, board: chess.Board) -> int:
         """
         Returns the material difference for a given chess position as an absolute evaluation.
+        The value of each piece is skewed based on its location.
 
         Args:
-            board (chess.Board): Represents the board state.
+            board (chess.Board): Represents the current board state.
 
         Returns:
-            int: Represents the material difference.
+            int: Represents the evaluation.
         """
         score = 0
 
@@ -62,18 +63,28 @@ class Evaluation:
         return score
     
     def evaluate_checkmate(self, board: chess.Board, ply) -> int:
+        """
+        Returns the evaluation for a position in checkmate where shorter checkmates
+        have higher scores. This method uses the negation of this formula: MATE_SCORE - ply
+
+        Args:
+            board (chess.Board): Represents the current board state.
+            ply (_type_): Represents the distance from the root position.
+
+        Returns:
+            int: Represents the score for the given checkmate.
+        """
         if board.is_checkmate():
-            # in a negamax framework, positive is always good and negative is always bad
-            # because the score perspective is adjusted at every ply
-            return -MATE_SCORE - ply
+            return -MATE_SCORE + ply
         return 0
 
     def evaluate(self, board: chess.Board) -> int:
         """
-        Returns the relative evaluation for a given board state.
+        Returns the relative evaluation for a given board state where negative is bad
+        and positive is good.
 
         Args:
-            board (chess.Board): Represents the board state.
+            board (chess.Board): Represents the current boards state.
 
         Returns:
             int: Represents the evaluation.
@@ -94,4 +105,4 @@ class Evaluation:
 if __name__ == "__main__":
     test_board = chess.Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R2QKBNR w KQkq - 0 1")
     evaluator = Evaluation()
-    print(evaluator.evaluate(test_board, 0))
+    print(evaluator.evaluate(test_board))

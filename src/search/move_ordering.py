@@ -33,9 +33,9 @@ class MoveOrdering:
 
         Args:
             board (chess.Board): Represents the current board state.
-            legal_moves (list[chess.Move]): Represents the legal moves.
-            pv_move (chess.Move): Represents the principal variation move to force to index 1.
-            tt_move (chess.Move): Represents the move found in the transposition table to force to index 0.
+            legal_moves (list[chess.Move]): Represents the legal moves for a given position.
+            pv_move (chess.Move): Represents the principal variation move.
+            tt_move (chess.Move): Represents the move from the transposition table.
 
         Returns:
             list[chess.Move]: Represents the sorted list of moves.
