@@ -25,7 +25,8 @@ class MoveOrdering:
         self,
         board: chess.Board,
         legal_moves: list[chess.Move],
-        pv_move: chess.Move
+        pv_move: chess.Move,
+        tt_move: chess.Move
     ) -> list[chess.Move]:
         """ Sorts a list of legal moves for a given position based on
         rough estimations for which moves are probably good.
@@ -33,15 +34,19 @@ class MoveOrdering:
         Args:
             board (chess.Board): Represents the current board state.
             legal_moves (list[chess.Move]): Represents the legal moves.
-            pv_move (chess.Move): Represents the principal variation move to force to index 0.
+            pv_move (chess.Move): Represents the principal variation move to force to index 1.
+            tt_move (chess.Move): Represents the move found in the transposition table to force to index 0.
 
         Returns:
             list[chess.Move]: Represents the sorted list of moves.
         """
         def score_move(move: chess.Move) -> int:
-            # prioritize pv move
-            if move == pv_move:
+            # prioritize moves from the transposition table
+            if move == tt_move:
                 return 100
+            # second priority to pv moves
+            elif move == pv_move:
+                return 90
 
             # low priority for quiet moves
             if not board.is_capture(move):

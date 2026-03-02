@@ -1,11 +1,19 @@
+# pylint: disable=line-too-long
+
 # third party
 import chess
 
 # project
+from src.search.eval_heuristics import MATE_SCORE, INF
 from src.search.move_ordering import MoveOrdering
 from src.search.evaluation import Evaluation
 
 from src.debug.logger import logger
+
+class SearchAbortionException(Exception):
+    """
+    Represents the exception raised when the search is canceled during search
+    """
 
 class SearchContext:
     """
@@ -17,6 +25,10 @@ class SearchContext:
         self.ply = 0
         self.stop_flag = False
 
+        # temporary handler to force the engine to revert to the best move from
+        # the previous iteration if a given iteration is canceled.
+        self.last_best = None
+
 class Engine:
     """ Evaluates a given board position with alphabeta search """
     def __init__(
@@ -24,9 +36,13 @@ class Engine:
         evaluator: Evaluation,
         move_sorter: MoveOrdering
     ) -> None:
+        # instances
         self.evaluator = evaluator
         self.move_sorter = move_sorter
         self.search_ctx = SearchContext()
+
+        # constants
+        self.MAX_PLY = 10
 
     def get_best_move(self, board: chess.Board, max_depth: int) -> chess.Move:
         """ Searches all legal moves for a given position, scores them, and
@@ -40,21 +56,37 @@ class Engine:
             chess.Move: The best move determined by the algorithm
         """
 
+        # the best move is defaulted to the first move before search, but if there are no legal
+        # moves that will raise in index error
+        if board.is_game_over():
+            return None
+
         self.search_ctx.best_move = list(board.legal_moves)[0]
         self.search_ctx.nodes_searched = 0
+        self.search_ctx.ply = 0
         self.search_ctx.stop_flag = False
 
-        alpha = -1_000_000
-        beta = 1_000_000
+        alpha = -INF
+        beta = INF
 
         for depth in range(1, max_depth + 1):
-            score = self.search(board, alpha, beta, depth)
+            try:
+                score = self.search(board, alpha, beta, depth)
+            
+            except SearchAbortionException():
+                logger.log("Search aborted")
+                return self.search_ctx.last_best
+            
+            self.search_ctx.last_best = self.search_ctx.best_move
 
-            if self.search_ctx.stop_flag:
-                break
+            if abs(score) > MATE_SCORE - self.MAX_PLY:
+                mate = abs(score) - MATE_SCORE if score > 0 else MATE_SCORE - abs(score)
+                print(f"info depth {depth} score mate {mate} pv {self.search_ctx.best_move}")
+                logger.log(f"info depth {depth} score mate {mate} pv {self.search_ctx.best_move}")
 
-            print(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
-            logger.log(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
+            else:
+                print(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
+                logger.log(f"info depth {depth} score cp {score} pv {self.search_ctx.best_move}")
 
         return self.search_ctx.best_move
 
@@ -70,28 +102,24 @@ class Engine:
         Returns:
             Eval: The evaluation determined by the evaluator.
         """
-        # check if the search is canceled
-        if self.search_ctx.stop_flag:
-            return 499
-
         self.search_ctx.nodes_searched += 1 # debug
 
         # if the game is over then return the board evaluation
         if board.is_game_over():
-            return self.evaluator.evaluate(board)
+            return self.evaluator.evaluate(board, self.search_ctx.ply)
 
         # maximum depth reached return quiescence
         if depth == 0:
             return self.quiescence(board, alpha, beta)
 
         # default the best score to some low value
-        best_score = -1_000_000
+        best_score = -INF
 
         # if this is the root position then prioritize the pv move (from previous iterations)
         if self.search_ctx.ply == 0 and self.search_ctx.best_move:
-            legal_moves = self.move_sorter.sort(board, board.legal_moves, self.search_ctx.best_move)
+            legal_moves = self.move_sorter.sort(board, board.legal_moves, self.search_ctx.best_move, None)
         else:
-            legal_moves = self.move_sorter.sort(board, board.legal_moves, None)
+            legal_moves = self.move_sorter.sort(board, board.legal_moves, None, None)
 
         # play each legal move and score them
         for move in legal_moves:
@@ -103,6 +131,9 @@ class Engine:
             board.pop()
 
             self.search_ctx.ply -= 1
+            
+            if self.search_ctx.stop_flag:
+                raise SearchAbortionException()
 
             # store the best score
             if score > best_score:
@@ -135,27 +166,30 @@ class Engine:
         Returns:
             Eval: The evaluation determined by the evaluator.
         """
-        # check if the search is canceled
         if self.search_ctx.stop_flag:
-            return 499
-
+            raise SearchAbortionException()
+        
         self.search_ctx.nodes_searched += 1 # debug
 
         # stand pat, ref: https://www.chessprogramming.org/Quiescence_Search
-        best_score = self.evaluator.evaluate(board)
-        if best_score >= beta:
+        best_score = self.evaluator.evaluate(board, self.search_ctx.ply)
+        if self.search_ctx.ply == self.MAX_PLY or best_score >= beta:
             return best_score
         if best_score > alpha:
             alpha = best_score
 
-        legal_moves = self.move_sorter.sort(board, board.generate_legal_captures(), pv_move=None)
+        legal_moves = self.move_sorter.sort(board, board.generate_legal_captures(), pv_move=None, tt_move=None)
 
         # play each legal capture and score them
         for move in legal_moves:
+            self.search_ctx.ply += 1
+
             # negate the score from the last iteration, a good move for our opponent is bad for us
             board.push(move)
             score = -self.quiescence(board, -beta, -alpha)
             board.pop()
+
+            self.search_ctx.ply -= 1
 
             # store the best score
             best_score = max(best_score, score)
@@ -175,12 +209,11 @@ if __name__ == "__main__":
     from src.debug.profiler import profile
 
     # create instances
-    test_board = chess.Board("r1b1k2r/ppp2pp1/2p5/2b1q3/6p1/3P4/PPP1BPP1/RNBQ1RK1 w kq - 0 11")
-    # info depth 5 nodes 1579993 score cp 0 pv b8a6
+    test_board = chess.Board()
     alphabeta = Engine(Evaluation(), MoveOrdering())
 
     # profile alphabeta
-    time, _ = profile(alphabeta.get_best_move, [test_board, 4])
+    time, _ = profile(alphabeta.get_best_move, [test_board, 6])
 
     print(f"Time Elapsed: {time:.3f}s")
     print(f"NPS: {(alphabeta.search_ctx.nodes_searched / time):,.3f}")
