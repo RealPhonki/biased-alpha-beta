@@ -60,8 +60,15 @@ class Evaluation:
             score -= MG_PESTO_TABLE[chess.KING][square]
 
         return score
+    
+    def evaluate_checkmate(self, board: chess.Board, ply) -> int:
+        if board.is_checkmate():
+            # in a negamax framework, positive is always good and negative is always bad
+            # because the score perspective is adjusted at every ply
+            return -MATE_SCORE - ply
+        return 0
 
-    def evaluate(self, board: chess.Board, ply: int) -> int:
+    def evaluate(self, board: chess.Board) -> int:
         """
         Returns the relative evaluation for a given board state.
 
@@ -75,7 +82,7 @@ class Evaluation:
             if board.is_checkmate():
                 # in a negamax framework, positive is always good and negative is always bad
                 # because the score perspective is adjusted at every ply
-                return -MATE_SCORE - ply
+                return -MATE_SCORE
             return 0
 
         score = 0

@@ -138,7 +138,7 @@ class Engine:
 
         # if the game is over then return the board evaluation
         if board.is_game_over():
-            return self.evaluator.evaluate(board, self.search_ctx.ply)
+            return self.evaluator.evaluate_checkmate(board, self.search_ctx.ply)
 
         # maximum depth reached return quiescence
         if depth == 0:
@@ -235,7 +235,7 @@ class Engine:
         self.search_ctx.nodes_searched += 1 # debug
 
         # stand pat, ref: https://www.chessprogramming.org/Quiescence_Search
-        best_score = self.evaluator.evaluate(board, self.search_ctx.ply)
+        best_score = self.evaluator.evaluate(board)
         if self.search_ctx.ply == self.MAX_PLY or best_score >= beta:
             return best_score
         if best_score > alpha:

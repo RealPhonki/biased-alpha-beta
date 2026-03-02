@@ -16,22 +16,24 @@ if __name__ == "__main__":
     engine = Engine(Evaluation(), MoveOrdering())
     legacy = Legacy(Evaluation(), MoveOrdering())
     profiler = cProfile.Profile()
-    test_board = chess.Board("r1b1k2r/ppp2pp1/2p5/2b1q3/6p1/3P4/PPP1BPP1/RNBQ1RK1 w kq - 0 11")
+    test_board = chess.Board()
 
     # start profiling
     profiler.enable()
 
-    engine.get_best_move(test_board, 4)
+    engine.get_best_move(test_board, 5)
 
     # end profiling
     profiler.disable()
     profiler.dump_stats("tests/engine_profile.prof")
 
+    """
     # start profiling
     profiler.enable()
 
-    legacy.get_best_move(test_board, 4)
+    legacy.get_best_move(test_board, 5)
 
     # end profiling
     profiler.disable()
     profiler.dump_stats("tests/legacy_profile.prof")
+    """
