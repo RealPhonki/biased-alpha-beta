@@ -1,3 +1,5 @@
+# third party
+import chess
 
 MATE_SCORE = 100_000
 INF = 1_000_000
@@ -78,7 +80,7 @@ MG_KING_TABLE = [
     -15,  36,  12, -54,   8, -28,  24,  14,
 ]
 
-MG_PESTO_TABLE = [
+BLACK_MG_PESTO_TABLE = [
     None,
     MG_PAWN_TABLE,   # chess.PAWN   = 1
     MG_KNIGHT_TABLE, # chess.KNIGHT = 2
@@ -88,9 +90,44 @@ MG_PESTO_TABLE = [
     MG_KING_TABLE    # chess.KING   = 6
 ]
 
-# initialize values
-for piece_type, table in enumerate(MG_PESTO_TABLE):
-    if table is None:
-        continue
+def flip_vertical(table: list) -> list:
+    """
+    Flips a piece-square table vertically.
 
-    MG_PESTO_TABLE[piece_type] = [MG_VALUE[piece_type] + table_value for table_value in table]
+    Args:
+        table (list): Represents the piece-square table to flip.
+
+    Returns:
+        list: Represents the flipped piece-square table.
+    """
+    if table is None:
+        return None
+    
+    new_table = [0] * len(table)
+
+    for square, value in enumerate(table):
+        new_table[chess.square_mirror(square)] = value
+    
+    return new_table
+
+def initialize_table_set(table: list) -> list:
+    """
+    Adds piece values to a given pesto table.
+
+    Args:
+        table (list): Represents the pesto table to initialize.
+
+    Returns:
+        list: Represents the initialized pesto table.
+    """
+    new_table = [None] * len(table)
+    for piece_type, table in enumerate(table):
+        if table is None:
+            continue
+
+        new_table[piece_type] = [MG_VALUE[piece_type] + table_value for table_value in table]
+    
+    return new_table
+
+BLACK_MG_PESTO_TABLE = initialize_table_set(BLACK_MG_PESTO_TABLE)
+WHITE_MG_PESTO_TABLE = [flip_vertical(table) for table in BLACK_MG_PESTO_TABLE]

@@ -2,7 +2,7 @@
 import chess
 
 # project
-from src.search.eval_heuristics import MG_PESTO_TABLE, MATE_SCORE
+from src.search.eval_heuristics import BLACK_MG_PESTO_TABLE, WHITE_MG_PESTO_TABLE, MATE_SCORE
 
 class Evaluation:
     """
@@ -24,41 +24,12 @@ class Evaluation:
         """
         score = 0
 
-        for square in board.pieces(chess.PAWN, chess.WHITE):
-            score += MG_PESTO_TABLE[chess.PAWN][chess.square_mirror(square)]
-
-        for square in board.pieces(chess.PAWN, chess.BLACK):
-            score -= MG_PESTO_TABLE[chess.PAWN][square]
-        
-        for square in board.pieces(chess.KNIGHT, chess.WHITE):
-            score += MG_PESTO_TABLE[chess.KNIGHT][chess.square_mirror(square)]
-
-        for square in board.pieces(chess.KNIGHT, chess.BLACK):
-            score -= MG_PESTO_TABLE[chess.KNIGHT][square]
-
-        for square in board.pieces(chess.BISHOP, chess.WHITE):
-            score += MG_PESTO_TABLE[chess.BISHOP][chess.square_mirror(square)]
-
-        for square in board.pieces(chess.BISHOP, chess.BLACK):
-            score -= MG_PESTO_TABLE[chess.BISHOP][square]
-
-        for square in board.pieces(chess.ROOK, chess.WHITE):
-            score += MG_PESTO_TABLE[chess.ROOK][chess.square_mirror(square)]
-
-        for square in board.pieces(chess.ROOK, chess.BLACK):
-            score -= MG_PESTO_TABLE[chess.ROOK][square]
-
-        for square in board.pieces(chess.QUEEN, chess.WHITE):
-            score += MG_PESTO_TABLE[chess.QUEEN][chess.square_mirror(square)]
-
-        for square in board.pieces(chess.QUEEN, chess.BLACK):
-            score -= MG_PESTO_TABLE[chess.QUEEN][square]
-
-        for square in board.pieces(chess.KING, chess.WHITE):
-            score += MG_PESTO_TABLE[chess.KING][chess.square_mirror(square)]
-
-        for square in board.pieces(chess.KING, chess.BLACK):
-            score -= MG_PESTO_TABLE[chess.KING][square]
+        for piece_type in self.PIECES:
+            for square in board.pieces(piece_type, chess.WHITE):
+                score += WHITE_MG_PESTO_TABLE[piece_type][square]
+            
+            for square in board.pieces(piece_type, chess.BLACK):
+                score -= BLACK_MG_PESTO_TABLE[piece_type][square]
 
         return score
     

@@ -27,6 +27,7 @@ if __name__ == "__main__":
     profiler.disable()
     profiler.dump_stats("tests/engine_profile.prof")
 
+    """
     # start profiling
     profiler.enable()
 
@@ -35,3 +36,4 @@ if __name__ == "__main__":
     # end profiling
     profiler.disable()
     profiler.dump_stats("tests/legacy_profile.prof")
+    """

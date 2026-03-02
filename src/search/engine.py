@@ -309,11 +309,11 @@ if __name__ == "__main__":
     from src.debug.profiler import profile
 
     # create instances
-    test_board = chess.Board("1rr1r2k/5ppp/6q1/8/Q7/4R3/4RPPP/4R2K w - - 0 1")
+    test_board = chess.Board()
     alphabeta = Engine(Evaluation(), MoveOrdering())
 
     # profile alphabeta
-    time, _ = profile(alphabeta.get_best_move, [test_board, 4])
+    time, _ = profile(alphabeta.get_best_move, [test_board, 5])
 
     print(f"Time Elapsed: {time:.3f}s")
     print(f"NPS: {(alphabeta.search_ctx.nodes_searched / time):,.3f}")
