@@ -89,13 +89,6 @@ class Evaluation:
         Returns:
             int: Represents the evaluation.
         """
-        if board.is_game_over():
-            if board.is_checkmate():
-                # in a negamax framework, positive is always good and negative is always bad
-                # because the score perspective is adjusted at every ply
-                return -MATE_SCORE
-            return 0
-
         score = 0
 
         score += self.count_material(board)

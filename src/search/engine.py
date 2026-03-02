@@ -75,7 +75,7 @@ class Engine:
         self.search_ctx = SearchContext()
 
         # constants
-        self.MAX_PLY = 10
+        self.MAX_PLY = 20
 
         # attributes
         self.TT: dict[int, TTEntry] = {}
@@ -271,6 +271,9 @@ class Engine:
         self.search_ctx.nodes_searched += 1
 
         # stand pat, ref: https://www.chessprogramming.org/Quiescence_Search
+        if board.is_game_over():
+            return self.evaluator.evaluate_checkmate(board, self.search_ctx.ply)
+
         best_score = self.evaluator.evaluate(board)
         if self.search_ctx.ply == self.MAX_PLY or best_score >= beta:
             return best_score
@@ -306,11 +309,11 @@ if __name__ == "__main__":
     from src.debug.profiler import profile
 
     # create instances
-    test_board = chess.Board("1k6/8/8/7R/K5R1/8/8/8 b - - 3 2")
+    test_board = chess.Board("1rr1r2k/5ppp/6q1/8/Q7/4R3/4RPPP/4R2K w - - 0 1")
     alphabeta = Engine(Evaluation(), MoveOrdering())
 
     # profile alphabeta
-    time, _ = profile(alphabeta.get_best_move, [test_board, 6])
+    time, _ = profile(alphabeta.get_best_move, [test_board, 4])
 
     print(f"Time Elapsed: {time:.3f}s")
     print(f"NPS: {(alphabeta.search_ctx.nodes_searched / time):,.3f}")
