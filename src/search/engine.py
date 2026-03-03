@@ -98,6 +98,7 @@ class Engine:
             return None
 
         # reset search context from previous searches to prevent data leakage
+        self.TT = {}
         self.search_ctx.best_move = legal_moves[0]
         self.search_ctx.stop_flag = False
 
