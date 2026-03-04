@@ -5,11 +5,11 @@ from chess import polyglot
 import chess
 
 # project
-from src.search.eval_heuristics import MATE_SCORE, INF
-from src.search.move_ordering import MoveOrdering
-from src.search.evaluation import Evaluation
+from biasfish.search.eval_heuristics import MATE_SCORE, INF
+from biasfish.search.move_ordering import MoveOrdering
+from biasfish.search.evaluation import Evaluation
 
-from src.debug.logger import logger
+from biasfish.debug.logger import logger
 
 class SearchAbortionException(Exception):
     """
@@ -139,7 +139,7 @@ class Engine:
             best_move (chess.Move): Represents the best move found during search.
         """
         if abs(score) > MATE_SCORE - self.MAX_PLY:
-            mate = abs(score) - MATE_SCORE if score > 0 else MATE_SCORE - abs(score)
+            mate = MATE_SCORE - abs(score) if score > 0 else  abs(score) - MATE_SCORE
             text = f"info depth {depth} score mate {mate} nodes {nodes} pv {best_move}"
         else:
             text = f"info depth {depth} score cp {score} nodes {nodes} pv {best_move}"
@@ -312,7 +312,7 @@ class Engine:
         return best_score
 
 if __name__ == "__main__":
-    from src.debug.profiler import profile
+    from src.biasfish.debug.profiler import profile
 
     # create instances
     test_board = chess.Board()

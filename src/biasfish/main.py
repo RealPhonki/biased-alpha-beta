@@ -8,11 +8,11 @@ import sys
 import chess
 
 # project
-from src.search.move_ordering import MoveOrdering
-from src.search.evaluation import Evaluation
-from src.search.engine import Engine
+from biasfish.search.move_ordering import MoveOrdering
+from biasfish.search.evaluation import Evaluation
+from biasfish.search.engine import Engine
 
-from src.debug.logger import logger
+from biasfish.debug.logger import logger
 
 class CommandError(Exception):
     """
@@ -190,7 +190,10 @@ class UCIHandler:
         logger.log("Quiting...")
         logger.close()
         sys.exit(0)
-        
-if __name__ == "__main__":
+
+def main():
     app = UCIHandler()
     app.run()
+
+if __name__ == "__main__":
+    main()

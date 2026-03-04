@@ -2,7 +2,14 @@
 import chess
 
 # project
-from src.search.eval_heuristics import BLACK_MG_PESTO_TABLE, BLACK_EG_PESTO_TABLE, WHITE_MG_PESTO_TABLE, WHITE_EG_PESTO_TABLE, PHASE_VALUE, MATE_SCORE
+from biasfish.search.eval_heuristics import (
+    BLACK_MG_PESTO_TABLE,
+    BLACK_EG_PESTO_TABLE,
+    WHITE_MG_PESTO_TABLE,
+    WHITE_EG_PESTO_TABLE,
+    PHASE_VALUE,
+    MATE_SCORE
+)
 
 class Evaluation:
     """

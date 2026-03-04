@@ -1,16 +1,18 @@
-# pyproject.toml
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "biased-alpha-beta"
+name = "biasfish"
 version = "0.1.0"
-description = "A chess engine with biased evaluation"
-dependencies = []
+description = "A CLI chess engine with biased evaluation"
+authors = [{name="RealPhonki"}]
+dependencies = [
+    "python-chess"
+]
 
-[tool.setuptools]
-packages = ["src"]
+[project.scripts]
+biasfish = "biasfish.main:main"
 
 [tool.pylint.messages_control]
 disable = [

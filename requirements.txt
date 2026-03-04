@@ -1,3 +1,2 @@
--e git+https://github.com/RealPhonki/biased-alpha-beta.git@e98fc2e0d6febccee5ab1afcd84f5f1fdc5c2c2d#egg=biased_alpha_beta
 chess==1.11.2
 python-chess==1.999
