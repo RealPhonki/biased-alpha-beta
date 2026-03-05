@@ -9,3 +9,4 @@
 - Add time management
 - Add windows installation support
 - Add installation instructions to README
+- The compiled binary generates log files, I need to remove that.

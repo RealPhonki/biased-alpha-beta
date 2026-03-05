@@ -192,6 +192,9 @@ class UCIHandler:
         sys.exit(0)
 
 def main():
+    """
+    This method exists because there needs to be a method exposed to the pyproject.toml
+    """
     app = UCIHandler()
     app.run()
 

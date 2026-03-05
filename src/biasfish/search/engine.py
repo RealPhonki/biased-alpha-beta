@@ -1,4 +1,5 @@
-# pylint: disable=line-too-long
+# standard
+import os
 
 # third party
 from chess import polyglot
@@ -75,6 +76,7 @@ class Engine:
         self.search_ctx = SearchContext()
 
         # constants
+        self.DEBUG = os.getenv("DEBUG") == "1"
         self.MAX_PLY = 20
 
         # attributes
@@ -145,7 +147,8 @@ class Engine:
             text = f"info depth {depth} score cp {score} nodes {nodes} pv {best_move}"
         
         print(text)
-        logger.log(text)
+        if self.DEBUG:
+            logger.log(text)
 
     def search(self, board: chess.Board, alpha: int, beta: int, depth: int) -> int:
         """
@@ -286,7 +289,7 @@ class Engine:
         if best_score > alpha:
             alpha = best_score
 
-        legal_moves = self.move_sorter.sort(board, board.generate_legal_captures(), pv_move=None, tt_move=None)
+        legal_moves = self.move_sorter.sort(board, board.generate_legal_captures(), None, None)
 
         # play each legal capture and score them
         for move in legal_moves:
@@ -312,7 +315,7 @@ class Engine:
         return best_score
 
 if __name__ == "__main__":
-    from src.biasfish.debug.profiler import profile
+    from biasfish.debug.profiler import profile
 
     # create instances
     test_board = chess.Board()
