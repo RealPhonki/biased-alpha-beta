@@ -86,8 +86,3 @@ class Evaluation:
         score += self.count_material(board)
 
         return score if board.turn == chess.WHITE else -score
-
-if __name__ == "__main__":
-    test_board = chess.Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R2QKBNR w KQkq - 0 1")
-    evaluator = Evaluation()
-    print(evaluator.evaluate(test_board))
